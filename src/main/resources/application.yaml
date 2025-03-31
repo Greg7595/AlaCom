@@ -1,0 +1,9 @@
+discount:
+  fixedValue: 1.5%
+  thresholds:
+    - requiredQuantity: 10
+      value: 5%
+    - requiredQuantity: 20
+      value: 10%
+    - requiredQuantity: 50
+      value: 15%
