@@ -9,6 +9,9 @@ import org.example.alacom.infrastructure.repository.ProductRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -19,6 +22,7 @@ import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -30,6 +34,13 @@ public class ProductControllerTest {
     private TestRestTemplate restTemplate;
     @Autowired
     private ProductRepository productRepository;
+
+    private static Stream<Arguments> invalidProductPriceRequests() {
+        return Stream.of(
+                Arguments.of(new ProductPriceRequest(-1)),
+                Arguments.of(new ProductPriceRequest(null))
+        );
+    }
 
     @AfterEach
     void cleanUp() {
@@ -79,10 +90,9 @@ public class ProductControllerTest {
         Assertions.assertEquals(expected, actual);
     }
 
-    @Test
-    public void calculatePrice_NegativeQuantity() {
-
-        var productPriceRequest = new ProductPriceRequest(-1);
+    @ParameterizedTest
+    @MethodSource("invalidProductPriceRequests")
+    public void calculatePrice_InvalidProductPriceRequest(ProductPriceRequest productPriceRequest) {
 
         var url = String.format("http://localhost:%d/api/v1/products/%s/price", port, UUID.randomUUID());
         var response = restTemplate.postForEntity(url, new HttpEntity<>(productPriceRequest), Object.class);
